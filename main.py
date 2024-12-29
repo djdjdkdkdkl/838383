@@ -117,8 +117,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
             keyboard = [
                 [InlineKeyboardButton("HELP GUIDE ❕", callback_data='help')],
-                [InlineKeyboardButton("AUTO RESPONDER GUIDE❕", url='https://telegra.ph/AUTO-RESPONDER-GUIDE-11-11')],
-                [InlineKeyboardButton("API AND HASH ID 🎥", url='https://youtu.be/_BjpSr-reM0?si=B10ZMj6zOzANRADL')],
+                [InlineKeyboardButton("AUTO RESPONDER GUIDE❕", url='https://graph.org/vTelegraphBot-12-29-21')],
+                [InlineKeyboardButton("API AND HASH ID 🎥", url='https://youtu.be/_BjpSr-reM0?si=Hr3TmWFM-p0A71C2')],
                 [InlineKeyboardButton("LOGIN WITH TELEGRAM 🔑", callback_data='login')],
                 [InlineKeyboardButton("Settings ⚙️", callback_data='settings')],
                 [InlineKeyboardButton("Auto Reply ⚙️", callback_data='auto_reply')]
@@ -1551,8 +1551,8 @@ async def my_groups(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     keyboard = [
         [InlineKeyboardButton("HELP GUIDE ❕", callback_data='help')],
-        [InlineKeyboardButton("AUTO RESPONDER GUIDE❕", url='https://telegra.ph/AUTO-RESPONDER-GUIDE-11-11')],
-        [InlineKeyboardButton("API AND HASH ID 🎥", url='https://youtu.be/_BjpSr-reM0?si=B10ZMj6zOzANRADL')],
+        [InlineKeyboardButton("AUTO RESPONDER GUIDE❕", url='http://telegra.ph/vTelegraphBot-12-29-20')],
+        [InlineKeyboardButton("API AND HASH ID 🎥", url='https://youtu.be/_BjpSr-reM0?si=Hr3TmWFM-p0A71C2')],
         [InlineKeyboardButton("LOGIN WITH TELEGRAM 🔑", callback_data='login')],
         [InlineKeyboardButton("Settings ⚙️", callback_data='settings')],
         [InlineKeyboardButton("Auto Reply ⚙️", callback_data='auto_reply')]
@@ -1562,11 +1562,11 @@ async def main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     if update.message:
 
-        await update.message.reply_text("DEVSCOTT Main Menu", reply_markup=reply_markup)
+        await update.message.reply_text("SPIDERTISE Main Menu", reply_markup=reply_markup)
     elif update.callback_query:
 
         query = update.callback_query
-        await query.edit_message_text("DEVSCOTT Main Menu", reply_markup=reply_markup)
+        await query.edit_message_text("SPIDERTISE Main Menu", reply_markup=reply_markup)
 
 async def back_to_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
@@ -1837,8 +1837,8 @@ async def all_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
     elif query.data == 'help':
         help_text = (
-        "🤖 <b>DEVSCOTT AUTO FORWARDING Bot Help</b>\n\n"
-        "Welcome to the DEVSCOTT AUTO FORWARDING Bot! Here's a guide on how to use the available commands:\n\n"
+        "🤖 <b>ZIDX AUTO FORWARDING Bot Help</b>\n\n"
+        "Welcome to the ZIDX AUTO FORWARDING Bot! Here's a guide on how to use the available commands:\n\n"
 
         "1. <code>/start</code> - Initiates the bot and provides subscription information.\n"
         "   - Displays your current subscription status and expiration date, along with quick links to login and settings.\n\n"
