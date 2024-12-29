@@ -22,7 +22,7 @@ from autoreply import set_word, keyword_settings, start_telethon_client, stop_te
 load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 scheduler = AsyncIOScheduler()
-ADMIN_IDS = os.getenv("7746278246").split(',') 
+ADMIN_IDS = os.getenv("ADMIN_IDS").split(',') 
 ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "thezidx")
 session_lock = asyncio.Lock()
 
