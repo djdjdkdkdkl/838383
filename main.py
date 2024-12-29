@@ -117,8 +117,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
             keyboard = [
                 [InlineKeyboardButton("HELP GUIDE ❕", callback_data='help')],
-                [InlineKeyboardButton("AUTO RESPONDER GUIDE❕", url='https://graph.org/vTelegraphBot-12-29-21')],
-                [InlineKeyboardButton("API AND HASH ID 🎥", url='https://youtu.be/_BjpSr-reM0?si=Hr3TmWFM-p0A71C2')],
+                [InlineKeyboardButton("AUTO RESPONDER GUIDE❕", url='https://graph.org/vTelegraphBot-12-29-26')],
+                [InlineKeyboardButton("API AND HASH ID 🎥", url='https://t.me/unpetulantly/7')],
                 [InlineKeyboardButton("LOGIN WITH TELEGRAM 🔑", callback_data='login')],
                 [InlineKeyboardButton("Settings ⚙️", callback_data='settings')],
                 [InlineKeyboardButton("Auto Reply ⚙️", callback_data='auto_reply')]
@@ -127,11 +127,11 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             await update.message.reply_text(  
                 "===================================\n"  
                 "       👋 Welcome to\n"  
-                "     <b>ZIDX AUTO FORWARDER Bot</b>\n"  
+                "     <b>Spidertise Ads Bot</b>\n"  
                 "-----------------------------------\n"  
                 " Your subscription is active until:\n"  
                 f"       <b>{formatted_expiry}</b> 📅\n"  
-                "===================================",  
+                "If Facing Any Problem Then Contact Admin @TheZidx",  
                 reply_markup=reply_markup,  
                 parse_mode="HTML"  
             )  
@@ -148,7 +148,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
         logger.info(f"User {user_id} is not authorized or subscription has expired.")
         await update.message.reply_text(
-            f"Hey! 👋 Looks like you don't have an active subscription yet. Reach out to our <a href=\"tg://resolve?domain={ADMIN_USERNAME}\">awesome admin</a> to get started! ✨",
+            f"Welcome To Spidertise 🕷️  I'm Ads Provider Bot By @Spidertise Buy Subscription From <a href=\"tg://resolve?domain={ADMIN_USERNAME}\">admin</a> For Using Bot ✨",
             parse_mode="HTML"
         )
 
@@ -1551,8 +1551,8 @@ async def my_groups(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     keyboard = [
         [InlineKeyboardButton("HELP GUIDE ❕", callback_data='help')],
-        [InlineKeyboardButton("AUTO RESPONDER GUIDE❕", url='http://telegra.ph/vTelegraphBot-12-29-20')],
-        [InlineKeyboardButton("API AND HASH ID 🎥", url='https://youtu.be/_BjpSr-reM0?si=Hr3TmWFM-p0A71C2')],
+        [InlineKeyboardButton("AUTO RESPONDER GUIDE❕", url='https://graph.org/vTelegraphBot-12-29-26')],
+        [InlineKeyboardButton("API AND HASH ID 🎥", url='https://t.me/unpetulantly/7')],
         [InlineKeyboardButton("LOGIN WITH TELEGRAM 🔑", callback_data='login')],
         [InlineKeyboardButton("Settings ⚙️", callback_data='settings')],
         [InlineKeyboardButton("Auto Reply ⚙️", callback_data='auto_reply')]
