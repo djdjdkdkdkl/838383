@@ -20,10 +20,10 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from autoreply import set_word, keyword_settings, start_telethon_client, stop_telethon_client
 
 load_dotenv()
-BOT_TOKEN = os.getenv("BOT_TOKEN")
+BOT_TOKEN = os.getenv("7845350045:AAE4orN2iEgrd1LORtJGdOUIVAg4NXCdhnY")
 scheduler = AsyncIOScheduler()
-ADMIN_IDS = os.getenv("ADMIN_IDS").split(',') 
-ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "devscottreal")
+ADMIN_IDS = os.getenv("7746278246").split(',') 
+ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "thezidx")
 session_lock = asyncio.Lock()
 
 def load_config():
