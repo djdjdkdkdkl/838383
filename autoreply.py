@@ -14,7 +14,7 @@ import json
 import logging
 from dotenv import load_dotenv
 load_dotenv()
-ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "devscottreal")
+ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "thezidx")
 
 active_clients = {}
 last_reply_time = {}
