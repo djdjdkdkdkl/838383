@@ -15,15 +15,19 @@ import asyncio
 import http.server
 import socketserver
 import threading
+import requests
+import signal
+import sys
 import json
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from autoreply import set_word, keyword_settings, start_telethon_client, stop_telethon_client
 
+shutdown_event = threading.Event()
 load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 scheduler = AsyncIOScheduler()
 ADMIN_IDS = os.getenv("ADMIN_IDS").split(',') 
-ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "thezidx")
+ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "devscottreal")
 session_lock = asyncio.Lock()
 
 def load_config():
@@ -68,6 +72,8 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 async def is_authorized(user_id: str) -> bool:
+    if user_id in ADMIN_IDS:
+        return True
     data = load_user_data()
     if user_id in data["users"]:
         expiry_date = data["users"][user_id].get("expiry_date")
@@ -99,7 +105,23 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     logger.info(f"Checking subscription for user: {user_id}")
 
     data = load_user_data()
-
+    if user_id in ADMIN_IDS and user_id not in data["users"]:
+        # Set 1 year subscription for admin
+        expiry = datetime.now() + timedelta(days=365)
+        data["users"][user_id] = {
+            "expiry_date": expiry.strftime('%Y-%m-%d %H:%M:%S'),
+            "forwarding_on": False,
+            "post_messages": [],
+            "message_source": "mypost",
+            "interval": "",
+            "groups": [],
+            "keywords": {},
+            "match_option": "exact",
+            "auto_reply_status": False,
+            "responder_option": "PM"
+        }
+        save_user_data(data)
+        logger.info(f"Added automatic subscription for admin {user_id}")
     if user_id in data["users"]:
         expiry_date = data["users"][user_id]["expiry_date"]
         try:
@@ -117,8 +139,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
             keyboard = [
                 [InlineKeyboardButton("HELP GUIDE ❕", callback_data='help')],
-                [InlineKeyboardButton("AUTO RESPONDER GUIDE❕", url='https://graph.org/vTelegraphBot-12-29-26')],
-                [InlineKeyboardButton("API AND HASH ID 🎥", url='https://t.me/unpetulantly/7')],
+                [InlineKeyboardButton("AUTO RESPONDER GUIDE❕", url='https://telegra.ph/AUTO-RESPONDER-GUIDE-11-11')],
+                [InlineKeyboardButton("API AND HASH ID 🎥", url='https://youtu.be/8naENmP3rg4?si=LVxsTXSSI864t6Kv')],
                 [InlineKeyboardButton("LOGIN WITH TELEGRAM 🔑", callback_data='login')],
                 [InlineKeyboardButton("Settings ⚙️", callback_data='settings')],
                 [InlineKeyboardButton("Auto Reply ⚙️", callback_data='auto_reply')]
@@ -127,11 +149,11 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             await update.message.reply_text(  
                 "===================================\n"  
                 "       👋 Welcome to\n"  
-                "     <b>Spidertise Ads Bot</b>\n"  
+                "     <b>DEVSCOTT AUTO FORWARDER Bot</b>\n"  
                 "-----------------------------------\n"  
                 " Your subscription is active until:\n"  
                 f"       <b>{formatted_expiry}</b> 📅\n"  
-                "If Facing Any Problem Then Contact Admin @TheZidx",  
+                "===================================",  
                 reply_markup=reply_markup,  
                 parse_mode="HTML"  
             )  
@@ -148,7 +170,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
         logger.info(f"User {user_id} is not authorized or subscription has expired.")
         await update.message.reply_text(
-            f"Welcome To Spidertise 🕷️  I'm Ads Provider Bot By @Spidertise Buy Subscription From <a href=\"tg://resolve?domain={ADMIN_USERNAME}\">admin</a> For Using Bot ✨",
+            f"Hey! 👋 Looks like you don't have an active subscription yet. Reach out to our <a href=\"tg://resolve?domain={ADMIN_USERNAME}\">awesome admin</a> to get started! ✨",
             parse_mode="HTML"
         )
 
@@ -791,80 +813,133 @@ async def list_users(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
 
     await update.message.reply_text(message, parse_mode="Markdown")
 
-async def add_group(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:  
-    user_id = str(update.message.from_user.id)  
+async def add_group(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    user_id = str(update.message.from_user.id)
+    session_file = f'{user_id}.session'
+    with open("config.json", "r") as f:
+        config_data = json.load(f)
+        user_data = config_data["users"].get(user_id, {})
+        api_id = user_data.get('api_id', '')
+        api_hash = user_data.get('api_hash', '')
 
-    if await is_authorized(user_id):  
-        message_text = update.message.text  
-        group_links = message_text.split("\n")[1:]  
+    if user_data.get("forwarding_on") or user_data.get("auto_reply_status"):
+        await update.message.reply_text(
+            "*⚠️ Action Required*\n\n"
+            "Please disable the following services before adding new groups:\n"
+            f"• {'Forwarding ▶️' if user_data.get('forwarding_on') else ''}\n"
+            f"• {'Auto Reply 🤖' if user_data.get('auto_reply_status') else ''}\n\n"
+            "Use `/off` to disable forwarding\n"
+            "Use Auto Reply settings to disable auto-reply",
+            parse_mode="Markdown"
+        )
+        return
+    async with asyncio.Lock():  # Ensure safe session handling in concurrent scenarios
+        client = TelegramClient(session_file, api_id, api_hash)
+        await client.connect()
 
-        if len(group_links) > 50:  
-            await update.message.reply_text("You can add a maximum of 50 group links at a time.")  
-            return  
+        if not await client.is_user_authorized():
+            await client.disconnect()
+            if os.path.exists(session_file):
+                os.remove(session_file)
+            await update.message.reply_text(
+                "Your session was terminated ❌\n\nPlease log in again using the /login command"
+            )
+            print(f"Session was terminated for user {user_id}")
+            return
+        print(f"User {user_id} is authorized")
+        await client.disconnect()
 
-        with open("config.json", "r") as f:  
-            config_data = json.load(f)  
+    # Proceed with group addition after authorization
+    if await is_authorized(user_id):
+        message_text = update.message.text
+        group_links = message_text.split("\n")[1:]
 
-        user_data = config_data["users"].get(user_id, {})  
-        user_groups = user_data.get("groups", [])  
+        if len(group_links) > 50:
+            await update.message.reply_text("You can add a maximum of 50 group links at a time.")
+            return
 
-        added_groups = []  
-        already_in_list = []  
+        with open("config.json", "r") as f:
+            config_data = json.load(f)
 
-        for group_link in group_links:  
-            group_link = group_link.strip()  
-            # Check if the group link is a valid Telegram link or a chat ID  
-            if group_link.startswith("https://t.me/") or (group_link.startswith('-') and group_link[1:].isdigit()):  
-                if group_link and group_link not in user_groups:  
-                    user_groups.append(group_link)  
-                    added_groups.append(group_link)  
-                elif group_link in user_groups:  
-                    already_in_list.append(group_link)  
-            else:  
-                await update.message.reply_text(f"Link '{group_link}' is not a valid Telegram link or chat ID.")  
+        user_data = config_data["users"].get(user_id, {})
+        api_id = user_data.get('api_id', '')
+        api_hash = user_data.get('api_hash', '')
+        user_groups = user_data.get("groups", [])
 
-        user_data["groups"] = user_groups  
-        config_data["users"][user_id] = user_data  
+        added_groups = []
+        already_in_list = []
+        invalid_groups = []
 
-        with open("config.json", "w") as f:  
-            json.dump(config_data, f, indent=4)  
+        async with TelegramClient(session_file, api_id, api_hash) as client:
+            try:
+                for group_link in group_links:
+                    group_link = group_link.strip()
 
-        if added_groups:  
-            added_groups_response = "*🎉 Groups Added for Forwarding:*\n"  
-            added_groups_response += "╭───────┬───────────────╮\n"  
-            added_groups_response += "│ *No*  │ *Group Link*   \n"  
-            added_groups_response += "├───────┼───────────────┤\n"  
+                    if group_link in user_groups:
+                        already_in_list.append(group_link)
+                        continue
 
-            for index, group in enumerate(added_groups, start=1):  
-                added_groups_response += f"│ `{index}` │ `{group}`\n"  
+                    try:
+                        if group_link.startswith("https://t.me/"):
+                            group_entity = await client.get_entity(group_link)
+                            try:
+                                await client(functions.channels.JoinChannelRequest(group_entity))
+                                await asyncio.sleep(1.5)  # Rate limiting
+                                user_groups.append(group_link)
+                                added_groups.append(group_link)
+                            except Exception as e:
+                                print(f"Failed to join group {group_link}: {e}")
+                                invalid_groups.append(group_link)
 
-            added_groups_response += "╰───────┴───────────────╯\n"  
-            added_groups_response += "*✨ Thank you for participating! ✨*"  
+                        elif group_link.startswith('-') and group_link[1:].isdigit():
+                            group_entity = await client.get_entity(int(group_link))
+                            user_groups.append(group_link)
+                            added_groups.append(group_link)
+                        else:
+                            invalid_groups.append(group_link)
 
-            await update.message.reply_text(added_groups_response, parse_mode="Markdown")  
+                    except Exception as e:
+                        print(f"Error processing group {group_link}: {e}")
+                        invalid_groups.append(group_link)
 
-        if already_in_list:  
-            already_in_list_response = "*⚠️ Groups Already in Your Forwarding List:*\n"  
-            already_in_list_response += "╭───────┬───────────────────────╮\n"  
-            already_in_list_response += "│ *No*  │ *Group Link*         │\n"  
-            already_in_list_response += "├───────┼───────────────────────┤\n"  
+                # Save the updated group list in config
+                user_data["groups"] = user_groups
+                config_data["users"][user_id] = user_data
+                with open("config.json", "w") as f:
+                    json.dump(config_data, f, indent=4)
 
-            for index, group in enumerate(already_in_list, start=1):  
-                already_in_list_response += f"│ `{index}` │ `{group}`\n"  
+                # Send confirmation messages
+                if added_groups:
+                    added_groups_response = "*🎉 Successfully Added Groups:*\n"
+                    added_groups_response += "╭───────┬───────────────╮\n"
+                    added_groups_response += "│ *No*  │ *Group Link*   \n"
+                    added_groups_response += "├───────┼───────────────┤\n"
 
-            already_in_list_response += "╰───────┴───────────────────────╯\n"  
-            already_in_list_response += "*💡 No changes were made to these groups.*"  
+                    for index, group in enumerate(added_groups, start=1):
+                        added_groups_response += f"│ `{index}` │ `{group}`\n"
 
-            await update.message.reply_text(already_in_list_response, parse_mode="Markdown")  
+                    added_groups_response += "╰───────┴───────────────╯\n"
+                    await update.message.reply_text(added_groups_response, parse_mode="Markdown")
 
-        if not added_groups and not already_in_list:  
-            await update.message.reply_text("Invalid Format❗\nUsage:\n`/addgroup\n<link1>\n<link2>`", parse_mode="Markdown")  
+                if invalid_groups:
+                    invalid_response = "*⚠️ Invalid or Inaccessible Groups:*\n"
+                    invalid_response += "\n".join([f"❌ `{group}`" for group in invalid_groups])
+                    await update.message.reply_text(invalid_response, parse_mode="Markdown")
 
-    else:  
-        await update.message.reply_text(  
-            f"<b>No Active Subscription, Please contact</b> <a href=\"tg://resolve?domain={ADMIN_USERNAME}\">Admin</a>",   
-            parse_mode="HTML"  
-        )  
+                if already_in_list:
+                    already_response = "*ℹ️ Already in Your List:*\n"
+                    already_response += "\n".join([f"✓ `{group}`" for group in already_in_list])
+                    await update.message.reply_text(already_response, parse_mode="Markdown")
+
+            except Exception as e:
+                print(f"Error in Telegram client operations: {e}")
+                await update.message.reply_text("An error occurred while processing your request. Please try again later.")
+    else:
+        await update.message.reply_text(
+            f"<b>No Active Subscription, Please contact</b> <a href=\"tg://resolve?domain={ADMIN_USERNAME}\">Admin</a>",
+            parse_mode="HTML"
+        )
+
 
 async def del_group(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:  
     user_id = str(update.message.from_user.id)  
@@ -1094,10 +1169,12 @@ async def forward_messages(update: Update, context: ContextTypes.DEFAULT_TYPE, u
         post_index = user_data.get("post_index", 0) 
         if post_index >= len(post_message):  
             post_index = 0 
+        group_index = user_data.get("group_index", 0)
+        group_indexs = group_index % len(user_groups)
         async with TelegramClient(f'{user_id}.session', api_id, api_hash) as client:  
             current_post = post_message[post_index]  
-            for group_link in user_groups:  
-                while True:  
+            group_link = user_groups[group_indexs]  
+            while True:  
                     try:  
                         if group_link.startswith("https://t.me/"):  
                             to_peer, topic_id = extract_group_and_topic_id(group_link)  
@@ -1129,13 +1206,15 @@ async def forward_messages(update: Update, context: ContextTypes.DEFAULT_TYPE, u
                                         from_peer=from_peer,  
                                         id=[message_id],  
                                         to_peer=target_group,  
-                                        top_msg_id=int(topic_id)  
+                                        top_msg_id=int(topic_id),
+                                        parse_mode="HTML"  
                                     ))  
                                 else:  
                                     await client(functions.messages.ForwardMessagesRequest(  
                                         from_peer=from_peer,  
                                         id=[message_id],  
-                                        to_peer=target_group  
+                                        to_peer=target_group,
+                                        parse_mode="HTML"  
                                     ))  
 
                                 print(f"Message forwarded to group {group_link}.")  
@@ -1152,9 +1231,9 @@ async def forward_messages(update: Update, context: ContextTypes.DEFAULT_TYPE, u
                                 target_group = await client.get_entity(to_peer)  
 
                             if topic_id is not None:  
-                                await client.send_message(target_group, current_post, reply_to=int(topic_id))  
+                                await client.send_message(target_group, current_post, reply_to=int(topic_id), parse_mode="HTML")  
                             else:  
-                                await client.send_message(target_group, current_post)  
+                                await client.send_message(target_group, current_post, parse_mode="HTML")  
 
                             print(f"Message sent to group {group_link}.")  
 
@@ -1169,9 +1248,12 @@ async def forward_messages(update: Update, context: ContextTypes.DEFAULT_TYPE, u
                         break
             print(f"All messages sent. Disconnecting client.")
 
-        post_index = (post_index + 1) % len(post_message)
+        group_index = (group_index + 1) % len(user_groups)
+        if group_index == 0:  
+            post_index = (post_index + 1) % len(post_message)
+        user_data["group_index"] = group_index
         user_data["post_index"] = post_index
-        config_data["users"][user_id] = user_data  
+        config_data["users"][user_id] = user_data
         with open("config.json", "w") as f:
             json.dump(config_data, f, indent=4)
         await asyncio.sleep(interval)  
@@ -1230,9 +1312,12 @@ async def forward_saved(update: Update, context: ContextTypes.DEFAULT_TYPE, user
                 await offf(update, context, user_id, reason="No messages found in Saved Messages ❌")
                 return
 
-            current_post = messages[0]  
+            current_post = messages[0]
 
-            for group_link in user_groups:
+            group_index = user_data.get("group_index", 0)  # Track the current group index
+
+            while forwarding_on:  # Keep forwarding as long as it's enabled
+                group_link = user_groups[group_index]  # Get the current group to send the message to
                 retry_count = 1
                 while retry_count > 0:
                     try:
@@ -1277,8 +1362,18 @@ async def forward_saved(update: Update, context: ContextTypes.DEFAULT_TYPE, user
                             await update.message.reply_text(error_message, parse_mode="Markdown")
                         await asyncio.sleep(0.5)  
                         break       
-                        
+
+                # Update the group index and save progress
+                group_index = (group_index + 1) % len(user_groups)
+                user_data["group_index"] = group_index
+                config_data["users"][user_id] = user_data
+                with open("config.json", "w") as f:
+                    json.dump(config_data, f, indent=4)
+
+                
+
         print(f"All messages sent. Disconnecting client.")
+
 
         await asyncio.sleep(interval)
 
@@ -1551,8 +1646,8 @@ async def my_groups(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     keyboard = [
         [InlineKeyboardButton("HELP GUIDE ❕", callback_data='help')],
-        [InlineKeyboardButton("AUTO RESPONDER GUIDE❕", url='https://graph.org/vTelegraphBot-12-29-26')],
-        [InlineKeyboardButton("API AND HASH ID 🎥", url='https://t.me/unpetulantly/7')],
+        [InlineKeyboardButton("AUTO RESPONDER GUIDE❕", url='https://telegra.ph/AUTO-RESPONDER-GUIDE-11-11')],
+        [InlineKeyboardButton("API AND HASH ID 🎥", url='https://youtu.be/8naENmP3rg4?si=LVxsTXSSI864t6Kv')],
         [InlineKeyboardButton("LOGIN WITH TELEGRAM 🔑", callback_data='login')],
         [InlineKeyboardButton("Settings ⚙️", callback_data='settings')],
         [InlineKeyboardButton("Auto Reply ⚙️", callback_data='auto_reply')]
@@ -1562,11 +1657,11 @@ async def main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     if update.message:
 
-        await update.message.reply_text("SPIDERTISE Main Menu", reply_markup=reply_markup)
+        await update.message.reply_text("DEVSCOTT Main Menu", reply_markup=reply_markup)
     elif update.callback_query:
 
         query = update.callback_query
-        await query.edit_message_text("SPIDERTISE Main Menu", reply_markup=reply_markup)
+        await query.edit_message_text("DEVSCOTT Main Menu", reply_markup=reply_markup)
 
 async def back_to_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
@@ -1837,8 +1932,8 @@ async def all_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
     elif query.data == 'help':
         help_text = (
-        "🤖 <b>ZIDX AUTO FORWARDING Bot Help</b>\n\n"
-        "Welcome to the ZIDX AUTO FORWARDING Bot! Here's a guide on how to use the available commands:\n\n"
+        "🤖 <b>DEVSCOTT AUTO FORWARDING Bot Help</b>\n\n"
+        "Welcome to the DEVSCOTT AUTO FORWARDING Bot! Here's a guide on how to use the available commands:\n\n"
 
         "1. <code>/start</code> - Initiates the bot and provides subscription information.\n"
         "   - Displays your current subscription status and expiration date, along with quick links to login and settings.\n\n"
@@ -1940,6 +2035,83 @@ def back_button():
     keyboard = [[InlineKeyboardButton("Back 🔙", callback_data='settings')]]
     return InlineKeyboardMarkup(keyboard)
 
+async def get_json(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    user_id = str(update.message.from_user.id)
+    if user_id in ADMIN_IDS:
+        try:
+            with open('config.json', 'r', encoding='utf-8') as file:
+                await update.message.reply_document(
+                    document=file,
+                    filename='config.json',
+                    caption="✨ Here's your current configuration file"
+                )
+        except Exception as e:
+            await update.message.reply_text(f"Error reading config file: {str(e)}")
+    else:
+        await update.message.reply_text("🔒 This command is restricted to administrators")
+
+async def set_json(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    user_id = str(update.message.from_user.id)
+    if user_id in ADMIN_IDS:
+        if update.message.reply_to_message and update.message.reply_to_message.document:
+            doc = update.message.reply_to_message.document
+            if doc.file_name == 'config.json':
+                file = await context.bot.get_file(doc.file_id)
+                try:
+                    await file.download_to_drive('config.json')
+                    await update.message.reply_text("✅ Configuration file updated successfully!")
+                except Exception as e:
+                    await update.message.reply_text(f"❌ Error updating config file: {str(e)}")
+            else:
+                await update.message.reply_text("📄 Please upload a file named 'config.json'")
+        else:
+            await update.message.reply_text("↩️ Please reply to a config.json file")
+    else:
+        await update.message.reply_text("🔒 This command is restricted to administrators")
+
+
+async def restart_service(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    user_id = str(update.message.from_user.id)
+    if user_id in ADMIN_IDS:
+        RENDER_API_KEY = os.getenv("RENDER_API_KEY")
+        SERVICE_ID = os.getenv("RENDER_SERVICE_ID")
+        
+        if not RENDER_API_KEY or not SERVICE_ID:
+            await update.message.reply_text(
+                "⚠️ *Render API Configuration Missing*\n\n"
+                "Please set the following environment variables:\n"
+                "• `RENDER_API_KEY`\n"
+                "• `RENDER_SERVICE_ID`",
+                parse_mode="Markdown"
+            )
+            return
+            
+        headers = {
+            "Accept": "application/json",
+            "Authorization": f"Bearer {RENDER_API_KEY}"
+        }
+        
+        url = f"https://api.render.com/v1/services/{SERVICE_ID}/deploys"
+        
+        try:
+            response = requests.post(url, headers=headers)
+            if response.status_code == 201:
+                await update.message.reply_text("🔄 Service restart initiated! Allow a few minutes for the process to complete.")
+            else:
+                await update.message.reply_text(
+                    "❌ *This command is for Render hosting users only*\n\n"
+                    "If you're using Render, please check your API configuration.",
+                    parse_mode="Markdown"
+                )
+        except Exception as e:
+            await update.message.reply_text(
+                "❌ *This command is for Render hosting users only*\n\n"
+                "If you're using Render, verify your hosting setup and API access.",
+                parse_mode="Markdown"
+            )
+    else:
+        await update.message.reply_text("🔒 This command is restricted to administrators")
+
 def main():
     application = Application.builder().token(BOT_TOKEN).build()
 
@@ -1953,6 +2125,7 @@ def main():
     application.add_handler(CommandHandler("on", on))
     application.add_handler(CommandHandler("off", off))
     application.add_handler(CommandHandler("2fa", two_fa))
+    application.add_handler(CommandHandler("restart", restart_service))
     application.add_handler(CommandHandler("logout", logout))
     application.add_handler(CommandHandler("groups", my_groups))
     application.add_handler(CommandHandler("addgroup", add_group))
@@ -1967,6 +2140,8 @@ def main():
     application.add_handler(CommandHandler("delpost", delpost))
     application.add_handler(CommandHandler('list', list_users))
     application.add_handler(CommandHandler("settings", settings))
+    application.add_handler(CommandHandler("getjson", get_json))
+    application.add_handler(CommandHandler("setjson", set_json))
     application.add_handler(CallbackQueryHandler(otp_callback, pattern="^otp_"))
     application.add_handler(CallbackQueryHandler(login_kbd, pattern="^num_"))
     application.add_handler(CallbackQueryHandler(autoreply_callback))
@@ -1984,13 +2159,25 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
         self.wfile.write(b"<body><h1>Bot is running...</h1></body></html>")  
 
 def run_web_server():  
-    port = int(os.environ.get('PORT', 5000))  
-    handler = CustomHandler  
-    with socketserver.TCPServer(("", port), handler) as httpd:  
-        print(f"Forwarder is running >> Serving at port {port}")  
-        httpd.serve_forever()  
+    port = int(os.environ.get('PORT', 5001))  
+    handler = CustomHandler
+    with socketserver.TCPServer(("", port), handler) as httpd:
+        print(f"Serving at port {port}...")
+        httpd.timeout = 1  
+        while not shutdown_event.is_set():
+            httpd.handle_request()
+
+        print("Shutting down the web server...")
+
+def shutdown(signum, frame):
+    print("Shutdown initiated...")
+    shutdown_event.set()  
+    sys.exit(0)  
 
 if __name__ == '__main__':
+    signal.signal(signal.SIGINT, shutdown)
+    signal.signal(signal.SIGTERM, shutdown)
+
     server_thread = threading.Thread(target=run_web_server)
     server_thread.start()
     main()
