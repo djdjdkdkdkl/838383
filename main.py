@@ -139,8 +139,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
             keyboard = [
                 [InlineKeyboardButton("HELP GUIDE ❕", callback_data='help')],
-                [InlineKeyboardButton("AUTO RESPONDER GUIDE❕", url='https://telegra.ph/AUTO-RESPONDER-GUIDE-11-11')],
-                [InlineKeyboardButton("API AND HASH ID 🎥", url='https://youtu.be/8naENmP3rg4?si=LVxsTXSSI864t6Kv')],
+                [InlineKeyboardButton("AUTO RESPONDER GUIDE❕", url='https://graph.org/vTelegraphBot-12-29-26')],
+                [InlineKeyboardButton("API AND HASH ID 🎥", url='https://t.me/unpetulantly/7')],
                 [InlineKeyboardButton("LOGIN WITH TELEGRAM 🔑", callback_data='login')],
                 [InlineKeyboardButton("Settings ⚙️", callback_data='settings')],
                 [InlineKeyboardButton("Auto Reply ⚙️", callback_data='auto_reply')]
@@ -149,11 +149,11 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             await update.message.reply_text(  
                 "===================================\n"  
                 "       👋 Welcome to\n"  
-                "     <b>DEVSCOTT AUTO FORWARDER Bot</b>\n"  
+                "     <b>SPIDERTISE ADS BOT</b>\n"  
                 "-----------------------------------\n"  
                 " Your subscription is active until:\n"  
                 f"       <b>{formatted_expiry}</b> 📅\n"  
-                "===================================",  
+                "If you are Facing Any Problem Then Contact the Admin @TheZidx",  
                 reply_markup=reply_markup,  
                 parse_mode="HTML"  
             )  
@@ -170,7 +170,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
         logger.info(f"User {user_id} is not authorized or subscription has expired.")
         await update.message.reply_text(
-            f"Hey! 👋 Looks like you don't have an active subscription yet. Reach out to our <a href=\"tg://resolve?domain={ADMIN_USERNAME}\">awesome admin</a> to get started! ✨",
+            f"Welcome To Spidertise 🕷️  I'm Ads Provider Bot By @Spidertise Buy Subscription from <a href=\"tg://resolve?domain={ADMIN_USERNAME}\">admin</a> for using bot 🕸",
             parse_mode="HTML"
         )
 
@@ -1640,8 +1640,8 @@ async def my_groups(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     keyboard = [
         [InlineKeyboardButton("HELP GUIDE ❕", callback_data='help')],
-        [InlineKeyboardButton("AUTO RESPONDER GUIDE❕", url='https://telegra.ph/AUTO-RESPONDER-GUIDE-11-11')],
-        [InlineKeyboardButton("API AND HASH ID 🎥", url='https://youtu.be/8naENmP3rg4?si=LVxsTXSSI864t6Kv')],
+        [InlineKeyboardButton("AUTO RESPONDER GUIDE❕", url='https://graph.org/vTelegraphBot-12-29-26')],
+        [InlineKeyboardButton("API AND HASH ID 🎥", url='https://t.me/unpetulantly/7')],
         [InlineKeyboardButton("LOGIN WITH TELEGRAM 🔑", callback_data='login')],
         [InlineKeyboardButton("Settings ⚙️", callback_data='settings')],
         [InlineKeyboardButton("Auto Reply ⚙️", callback_data='auto_reply')]
@@ -1651,11 +1651,11 @@ async def main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     if update.message:
 
-        await update.message.reply_text("DEVSCOTT Main Menu", reply_markup=reply_markup)
+        await update.message.reply_text("SPIDERTISE Main Menu", reply_markup=reply_markup)
     elif update.callback_query:
 
         query = update.callback_query
-        await query.edit_message_text("DEVSCOTT Main Menu", reply_markup=reply_markup)
+        await query.edit_message_text("SPIDERTISE Main Menu", reply_markup=reply_markup)
 
 async def back_to_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
@@ -1926,8 +1926,8 @@ async def all_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
     elif query.data == 'help':
         help_text = (
-        "🤖 <b>DEVSCOTT AUTO FORWARDING Bot Help</b>\n\n"
-        "Welcome to the DEVSCOTT AUTO FORWARDING Bot! Here's a guide on how to use the available commands:\n\n"
+        "🤖 <b>SPIDERTISE AUTO FORWARDING Bot Help</b>\n\n"
+        "Welcome to the SPIDERTISE AUTO FORWARDING Bot! Here's a guide on how to use the available commands:\n\n"
 
         "1. <code>/start</code> - Initiates the bot and provides subscription information.\n"
         "   - Displays your current subscription status and expiration date, along with quick links to login and settings.\n\n"
