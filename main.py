@@ -153,7 +153,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                 "-----------------------------------\n"  
                 " Your subscription is active until:\n"  
                 f"       <b>{formatted_expiry}</b> 📅\n"  
-                "If you are Facing Any Problem Then Contact the Admin @SPIDERTISEAD",  
+                "If you are Facing Any Problem Then Contact the Admin @SpisertiseAd",  
                 reply_markup=reply_markup,  
                 parse_mode="HTML"  
             )  
