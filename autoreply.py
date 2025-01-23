@@ -14,7 +14,7 @@ import json
 import logging
 from dotenv import load_dotenv
 load_dotenv()
-ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "thezidx")
+ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "SpidertiseAd")
 
 active_clients = {}
 last_reply_time = {}
