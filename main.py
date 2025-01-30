@@ -140,7 +140,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             keyboard = [
                 [InlineKeyboardButton("HELP GUIDE ❕", callback_data='help')],
                 [InlineKeyboardButton("AUTO RESPONDER GUIDE❕", url='https://graph.org/vTelegraphBot-12-29-26')],
-                [InlineKeyboardButton("API AND HASH ID 🎥", url='https://t.me/unpetulantly/7')],
+                [InlineKeyboardButton("API AND HASH ID 🎥", url='https://t.me/aboutAdss/5')],
                 [InlineKeyboardButton("LOGIN WITH TELEGRAM 🔑", callback_data='login')],
                 [InlineKeyboardButton("Settings ⚙️", callback_data='settings')],
                 [InlineKeyboardButton("Auto Reply ⚙️", callback_data='auto_reply')]
@@ -1676,7 +1676,7 @@ async def main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     keyboard = [
         [InlineKeyboardButton("HELP GUIDE ❕", callback_data='help')],
         [InlineKeyboardButton("AUTO RESPONDER GUIDE❕", url='https://graph.org/vTelegraphBot-12-29-26')],
-        [InlineKeyboardButton("API AND HASH ID 🎥", url='https://t.me/unpetulantly/7')],
+        [InlineKeyboardButton("API AND HASH ID 🎥", url='https://t.me/aboutAdss/5')],
         [InlineKeyboardButton("LOGIN WITH TELEGRAM 🔑", callback_data='login')],
         [InlineKeyboardButton("Settings ⚙️", callback_data='settings')],
         [InlineKeyboardButton("Auto Reply ⚙️", callback_data='auto_reply')]
