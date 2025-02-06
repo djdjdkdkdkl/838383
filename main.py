@@ -27,7 +27,7 @@ load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 scheduler = AsyncIOScheduler()
 ADMIN_IDS = os.getenv("ADMIN_IDS").split(',') 
-ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "thezidx")
+ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "SpidertiseAd")
 session_lock = asyncio.Lock()
 
 def load_config():
