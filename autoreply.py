@@ -15,9 +15,9 @@ import json
 import logging
 from dotenv import load_dotenv
 load_dotenv()
-ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "devscottreal")
+ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "spidertiseAd")
 
-FURL = "https://t.me/echofluxxx" 
+FURL = "https://t.me/spidertise" 
 active_clients = {}
 last_reply_time = {}
 
@@ -243,7 +243,7 @@ async def start_telethon_client(user_id, context=None):
                   🎯 *DOWNLOADED*
                   Self-destruct media saved
                   
-                  [Made with ❤️ by FluX𝕏♛]({FURL})
+                  [Made with ❤️ by Spidertise]({FURL})
                   """               
                 try:
                     if save_location == "saved":
